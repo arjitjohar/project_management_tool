@@ -1,3 +1,3 @@
 # project_management_tool
 
-Welocome to the project management project
+Welcome to the project management project
