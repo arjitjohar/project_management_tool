@@ -1,5 +1,8 @@
 {
   "aws_project_region": "us-east-1",
+  "aws_appsync_graphqlEndpoint": "https://5tdwv3dfbjdhzlsabc46czewna.appsync-api.us-east-1.amazonaws.com/graphql",
+  "aws_appsync_region": "us-east-1",
+  "aws_appsync_authenticationType": "AMAZON_COGNITO_USER_POOLS",
   "aws_cognito_identity_pool_id": "us-east-1:7b256bdd-0308-4748-9dc6-217c2a6bfcc0",
   "aws_cognito_region": "us-east-1",
   "aws_user_pools_id": "us-east-1_jJKJ72kGD",
@@ -25,8 +28,5 @@
   },
   "aws_cognito_verification_mechanisms": [
     "EMAIL"
-  ],
-  "aws_appsync_graphqlEndpoint": "https://5tdwv3dfbjdhzlsabc46czewna.appsync-api.us-east-1.amazonaws.com/graphql",
-  "aws_appsync_region": "us-east-1",
-  "aws_appsync_authenticationType": "AMAZON_COGNITO_USER_POOLS"
+  ]
 }
