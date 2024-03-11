@@ -1,5 +1,5 @@
-type Project @model @auth(rules: [{allow: private}, {allow: owner}]) {
+type Project @model @auth(rules: [{ allow: private }, { allow: owner }]) {
   id: ID!
   title: String
   description: String
-} 
+}
