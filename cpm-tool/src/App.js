@@ -4,6 +4,7 @@ import { withAuthenticator } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
 import config from "./amplifyconfiguration.json";
 import { ProjectCreateForm } from "./ui-components";
+import ListProjects from "./components/ListProjects";
 
 Amplify.configure(config);
 
@@ -26,6 +27,9 @@ function App({ signOut, user }) {
           return updatedFields;
         }}
       />
+
+      <ListProjects username={user.username} />
+
       <button onClick={signOut}>Sign out</button>
     </>
   );
