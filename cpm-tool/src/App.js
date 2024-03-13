@@ -11,7 +11,21 @@ function App({ signOut, user }) {
   return (
     <>
       <h1>Hello {user.username}</h1>
-      <ProjectCreateForm />
+
+      <ProjectCreateForm
+        onSubmit={(fields) => {
+          // Example function to trim all string inputs
+          const updatedFields = {};
+          Object.keys(fields).forEach((key) => {
+            if (typeof fields[key] === "string") {
+              updatedFields[key] = fields[key].trim();
+            } else {
+              updatedFields[key] = fields[key];
+            }
+          });
+          return updatedFields;
+        }}
+      />
       <button onClick={signOut}>Sign out</button>
     </>
   );
