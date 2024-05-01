@@ -7,10 +7,9 @@
 /* eslint-disable */
 import * as React from "react";
 import { Button, Flex, Grid, TextField, useTheme } from "@aws-amplify/ui-react";
+import { Project } from "../models";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
-import { generateClient } from "aws-amplify/api";
-import { createProject } from "../graphql/mutations";
-const client = generateClient();
+import { DataStore } from "aws-amplify/datastore";
 export default function ProjectCreateForm(props) {
   const {
     clearOnSuccess = true,
@@ -103,14 +102,7 @@ export default function ProjectCreateForm(props) {
               modelFields[key] = null;
             }
           });
-          await client.graphql({
-            query: createProject.replaceAll("__typename", ""),
-            variables: {
-              input: {
-                ...modelFields,
-              },
-            },
-          });
+          await DataStore.save(new Project(modelFields));
           if (onSuccess) {
             onSuccess(modelFields);
           }
@@ -119,8 +111,7 @@ export default function ProjectCreateForm(props) {
           }
         } catch (err) {
           if (onError) {
-            const messages = err.errors.map((e) => e.message).join("\n");
-            onError(modelFields, messages);
+            onError(modelFields, err.message);
           }
         }
       }}

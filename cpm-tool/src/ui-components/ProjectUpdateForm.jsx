@@ -25,20 +25,23 @@ export default function ProjectUpdateForm(props) {
     ...rest
   } = props;
   const initialValues = {
-    title: "",
+    userId: "",
     description: "",
+    title: "",
   };
-  const [title, setTitle] = React.useState(initialValues.title);
+  const [userId, setUserId] = React.useState(initialValues.userId);
   const [description, setDescription] = React.useState(
     initialValues.description
   );
+  const [title, setTitle] = React.useState(initialValues.title);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
     const cleanValues = projectRecord
       ? { ...initialValues, ...projectRecord }
       : initialValues;
-    setTitle(cleanValues.title);
+    setUserId(cleanValues.userId);
     setDescription(cleanValues.description);
+    setTitle(cleanValues.title);
     setErrors({});
   };
   const [projectRecord, setProjectRecord] = React.useState(projectModelProp);
@@ -58,8 +61,9 @@ export default function ProjectUpdateForm(props) {
   }, [idProp, projectModelProp]);
   React.useEffect(resetStateValues, [projectRecord]);
   const validations = {
-    title: [],
+    userId: [],
     description: [],
+    title: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -87,8 +91,9 @@ export default function ProjectUpdateForm(props) {
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
-          title: title ?? null,
+          userId: userId ?? null,
           description: description ?? null,
+          title: title ?? null,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -141,29 +146,30 @@ export default function ProjectUpdateForm(props) {
       {...rest}
     >
       <TextField
-        label="Title"
+        label="User id"
         isRequired={false}
         isReadOnly={false}
-        value={title}
+        value={userId}
         onChange={(e) => {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              title: value,
+              userId: value,
               description,
+              title,
             };
             const result = onChange(modelFields);
-            value = result?.title ?? value;
+            value = result?.userId ?? value;
           }
-          if (errors.title?.hasError) {
-            runValidationTasks("title", value);
+          if (errors.userId?.hasError) {
+            runValidationTasks("userId", value);
           }
-          setTitle(value);
+          setUserId(value);
         }}
-        onBlur={() => runValidationTasks("title", title)}
-        errorMessage={errors.title?.errorMessage}
-        hasError={errors.title?.hasError}
-        {...getOverrideProps(overrides, "title")}
+        onBlur={() => runValidationTasks("userId", userId)}
+        errorMessage={errors.userId?.errorMessage}
+        hasError={errors.userId?.hasError}
+        {...getOverrideProps(overrides, "userId")}
       ></TextField>
       <TextField
         label="Description"
@@ -174,8 +180,9 @@ export default function ProjectUpdateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
-              title,
+              userId,
               description: value,
+              title,
             };
             const result = onChange(modelFields);
             value = result?.description ?? value;
@@ -189,6 +196,32 @@ export default function ProjectUpdateForm(props) {
         errorMessage={errors.description?.errorMessage}
         hasError={errors.description?.hasError}
         {...getOverrideProps(overrides, "description")}
+      ></TextField>
+      <TextField
+        label="Title"
+        isRequired={false}
+        isReadOnly={false}
+        value={title}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              userId,
+              description,
+              title: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.title ?? value;
+          }
+          if (errors.title?.hasError) {
+            runValidationTasks("title", value);
+          }
+          setTitle(value);
+        }}
+        onBlur={() => runValidationTasks("title", title)}
+        errorMessage={errors.title?.errorMessage}
+        hasError={errors.title?.hasError}
+        {...getOverrideProps(overrides, "title")}
       ></TextField>
       <Flex
         justifyContent="space-between"
