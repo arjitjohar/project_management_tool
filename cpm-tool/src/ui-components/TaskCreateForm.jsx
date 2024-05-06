@@ -6,12 +6,12 @@
 
 /* eslint-disable */
 import * as React from "react";
-import { Button, Flex, Grid, TextField, useTheme } from "@aws-amplify/ui-react";
+import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
-import { createProject } from "../graphql/mutations";
+import { createTask } from "../graphql/mutations";
 const client = generateClient();
-export default function ProjectCreateForm(props) {
+export default function TaskCreateForm(props) {
   const {
     clearOnSuccess = true,
     onSuccess,
@@ -22,24 +22,27 @@ export default function ProjectCreateForm(props) {
     overrides,
     ...rest
   } = props;
-  const { tokens } = useTheme();
   const initialValues = {
+    relatedTasks: "",
     title: "",
-    description: "",
+    duration: "",
   };
-  const [title, setTitle] = React.useState(initialValues.title);
-  const [description, setDescription] = React.useState(
-    initialValues.description
+  const [relatedTasks, setRelatedTasks] = React.useState(
+    initialValues.relatedTasks
   );
+  const [title, setTitle] = React.useState(initialValues.title);
+  const [duration, setDuration] = React.useState(initialValues.duration);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
+    setRelatedTasks(initialValues.relatedTasks);
     setTitle(initialValues.title);
-    setDescription(initialValues.description);
+    setDuration(initialValues.duration);
     setErrors({});
   };
   const validations = {
+    relatedTasks: [],
     title: [],
-    description: [],
+    duration: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -61,14 +64,15 @@ export default function ProjectCreateForm(props) {
   return (
     <Grid
       as="form"
-      rowGap={tokens.space.xs.value}
-      columnGap={tokens.space.small.value}
-      padding={tokens.space.xxs.value}
+      rowGap="15px"
+      columnGap="15px"
+      padding="20px"
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
+          relatedTasks,
           title,
-          description,
+          duration,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
@@ -99,7 +103,7 @@ export default function ProjectCreateForm(props) {
             }
           });
           await client.graphql({
-            query: createProject.replaceAll("__typename", ""),
+            query: createTask.replaceAll("__typename", ""),
             variables: {
               input: {
                 ...modelFields,
@@ -119,19 +123,37 @@ export default function ProjectCreateForm(props) {
           }
         }
       }}
-      {...getOverrideProps(overrides, "ProjectCreateForm")}
+      {...getOverrideProps(overrides, "TaskCreateForm")}
       {...rest}
     >
       <TextField
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>Title</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
+        label="Related tasks"
+        isRequired={false}
+        isReadOnly={false}
+        value={relatedTasks}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              relatedTasks: value,
+              title,
+              duration,
+            };
+            const result = onChange(modelFields);
+            value = result?.relatedTasks ?? value;
+          }
+          if (errors.relatedTasks?.hasError) {
+            runValidationTasks("relatedTasks", value);
+          }
+          setRelatedTasks(value);
+        }}
+        onBlur={() => runValidationTasks("relatedTasks", relatedTasks)}
+        errorMessage={errors.relatedTasks?.errorMessage}
+        hasError={errors.relatedTasks?.hasError}
+        {...getOverrideProps(overrides, "relatedTasks")}
+      ></TextField>
+      <TextField
+        label="Title"
         isRequired={false}
         isReadOnly={false}
         value={title}
@@ -139,8 +161,9 @@ export default function ProjectCreateForm(props) {
           let { value } = e.target;
           if (onChange) {
             const modelFields = {
+              relatedTasks,
               title: value,
-              description,
+              duration,
             };
             const result = onChange(modelFields);
             value = result?.title ?? value;
@@ -156,37 +179,34 @@ export default function ProjectCreateForm(props) {
         {...getOverrideProps(overrides, "title")}
       ></TextField>
       <TextField
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>Description</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
+        label="Duration"
         isRequired={false}
         isReadOnly={false}
-        value={description}
+        type="number"
+        step="any"
+        value={duration}
         onChange={(e) => {
-          let { value } = e.target;
+          let value = isNaN(parseInt(e.target.value))
+            ? e.target.value
+            : parseInt(e.target.value);
           if (onChange) {
             const modelFields = {
+              relatedTasks,
               title,
-              description: value,
+              duration: value,
             };
             const result = onChange(modelFields);
-            value = result?.description ?? value;
+            value = result?.duration ?? value;
           }
-          if (errors.description?.hasError) {
-            runValidationTasks("description", value);
+          if (errors.duration?.hasError) {
+            runValidationTasks("duration", value);
           }
-          setDescription(value);
+          setDuration(value);
         }}
-        onBlur={() => runValidationTasks("description", description)}
-        errorMessage={errors.description?.errorMessage}
-        hasError={errors.description?.hasError}
-        {...getOverrideProps(overrides, "description")}
+        onBlur={() => runValidationTasks("duration", duration)}
+        errorMessage={errors.duration?.errorMessage}
+        hasError={errors.duration?.hasError}
+        {...getOverrideProps(overrides, "duration")}
       ></TextField>
       <Flex
         justifyContent="space-between"
@@ -202,7 +222,7 @@ export default function ProjectCreateForm(props) {
           {...getOverrideProps(overrides, "ClearButton")}
         ></Button>
         <Flex
-          gap={tokens.space.small.value}
+          gap="15px"
           {...getOverrideProps(overrides, "RightAlignCTASubFlex")}
         >
           <Button

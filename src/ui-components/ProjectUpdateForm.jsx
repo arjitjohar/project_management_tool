@@ -182,9 +182,10 @@ function ArrayField({
     </React.Fragment>
   );
 }
-export default function ProjectCreateForm(props) {
+export default function ProjectUpdateForm(props) {
   const {
-    clearOnSuccess = true,
+    id: idProp,
+    project: projectModelProp,
     onSuccess,
     onError,
     onSubmit,
@@ -193,7 +194,6 @@ export default function ProjectCreateForm(props) {
     overrides,
     ...rest
   } = props;
-  const { tokens } = useTheme();
   const initialValues = {
     userId: "",
     description: "",
@@ -208,14 +208,32 @@ export default function ProjectCreateForm(props) {
   const [Tasks, setTasks] = React.useState(initialValues.Tasks);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
-    setUserId(initialValues.userId);
-    setDescription(initialValues.description);
-    setTitle(initialValues.title);
-    setTasks(initialValues.Tasks);
+    const cleanValues = projectRecord
+      ? { ...initialValues, ...projectRecord, Tasks: linkedTasks }
+      : initialValues;
+    setUserId(cleanValues.userId);
+    setDescription(cleanValues.description);
+    setTitle(cleanValues.title);
+    setTasks(cleanValues.Tasks ?? []);
     setCurrentTasksValue(undefined);
     setCurrentTasksDisplayValue("");
     setErrors({});
   };
+  const [projectRecord, setProjectRecord] = React.useState(projectModelProp);
+  const [linkedTasks, setLinkedTasks] = React.useState([]);
+  const canUnlinkTasks = false;
+  React.useEffect(() => {
+    const queryData = async () => {
+      const record = idProp
+        ? await DataStore.query(Project, idProp)
+        : projectModelProp;
+      setProjectRecord(record);
+      const linkedTasks = record ? await record.Tasks.toArray() : [];
+      setLinkedTasks(linkedTasks);
+    };
+    queryData();
+  }, [idProp, projectModelProp]);
+  React.useEffect(resetStateValues, [projectRecord, linkedTasks]);
   const [currentTasksDisplayValue, setCurrentTasksDisplayValue] =
     React.useState("");
   const [currentTasksValue, setCurrentTasksValue] = React.useState(undefined);
@@ -261,9 +279,9 @@ export default function ProjectCreateForm(props) {
   return (
     <Grid
       as="form"
-      rowGap={tokens.space.xs.value}
-      columnGap={tokens.space.small.value}
-      padding={tokens.space.xxs.value}
+      rowGap="15px"
+      columnGap="15px"
+      padding="20px"
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
@@ -308,31 +326,61 @@ export default function ProjectCreateForm(props) {
               modelFields[key] = null;
             }
           });
+          const promises = [];
+          const tasksToLink = [];
+          const tasksToUnLink = [];
+          const tasksSet = new Set();
+          const linkedTasksSet = new Set();
+          Tasks.forEach((r) => tasksSet.add(getIDValue.Tasks?.(r)));
+          linkedTasks.forEach((r) => linkedTasksSet.add(getIDValue.Tasks?.(r)));
+          linkedTasks.forEach((r) => {
+            if (!tasksSet.has(getIDValue.Tasks?.(r))) {
+              tasksToUnLink.push(r);
+            }
+          });
+          Tasks.forEach((r) => {
+            if (!linkedTasksSet.has(getIDValue.Tasks?.(r))) {
+              tasksToLink.push(r);
+            }
+          });
+          tasksToUnLink.forEach((original) => {
+            if (!canUnlinkTasks) {
+              throw Error(
+                `Task ${original.id} cannot be unlinked from Project because projectID is a required field.`
+              );
+            }
+            promises.push(
+              DataStore.save(
+                Task.copyOf(original, (updated) => {
+                  updated.projectID = null;
+                })
+              )
+            );
+          });
+          tasksToLink.forEach((original) => {
+            promises.push(
+              DataStore.save(
+                Task.copyOf(original, (updated) => {
+                  updated.projectID = projectRecord.id;
+                })
+              )
+            );
+          });
           const modelFieldsToSave = {
             userId: modelFields.userId,
             description: modelFields.description,
             title: modelFields.title,
           };
-          const project = await DataStore.save(new Project(modelFieldsToSave));
-          const promises = [];
           promises.push(
-            ...Tasks.reduce((promises, original) => {
-              promises.push(
-                DataStore.save(
-                  Task.copyOf(original, (updated) => {
-                    updated.projectID = project.id;
-                  })
-                )
-              );
-              return promises;
-            }, [])
+            DataStore.save(
+              Project.copyOf(projectRecord, (updated) => {
+                Object.assign(updated, modelFieldsToSave);
+              })
+            )
           );
           await Promise.all(promises);
           if (onSuccess) {
             onSuccess(modelFields);
-          }
-          if (clearOnSuccess) {
-            resetStateValues();
           }
         } catch (err) {
           if (onError) {
@@ -340,19 +388,11 @@ export default function ProjectCreateForm(props) {
           }
         }
       }}
-      {...getOverrideProps(overrides, "ProjectCreateForm")}
+      {...getOverrideProps(overrides, "ProjectUpdateForm")}
       {...rest}
     >
       <TextField
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>User id</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
+        label="User id"
         isRequired={false}
         isReadOnly={false}
         value={userId}
@@ -379,15 +419,7 @@ export default function ProjectCreateForm(props) {
         {...getOverrideProps(overrides, "userId")}
       ></TextField>
       <TextField
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>Description</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
+        label="Description"
         isRequired={false}
         isReadOnly={false}
         value={description}
@@ -414,15 +446,7 @@ export default function ProjectCreateForm(props) {
         {...getOverrideProps(overrides, "description")}
       ></TextField>
       <TextField
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>Title</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
+        label="Title"
         isRequired={false}
         isReadOnly={false}
         value={title}
@@ -466,15 +490,7 @@ export default function ProjectCreateForm(props) {
           setCurrentTasksDisplayValue("");
         }}
         currentFieldValue={currentTasksValue}
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>Tasks</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
+        label={"Tasks"}
         items={Tasks}
         hasError={errors?.Tasks?.hasError}
         runValidationTasks={async () =>
@@ -538,23 +554,27 @@ export default function ProjectCreateForm(props) {
         {...getOverrideProps(overrides, "CTAFlex")}
       >
         <Button
-          children="Clear"
+          children="Reset"
           type="reset"
           onClick={(event) => {
             event.preventDefault();
             resetStateValues();
           }}
-          {...getOverrideProps(overrides, "ClearButton")}
+          isDisabled={!(idProp || projectModelProp)}
+          {...getOverrideProps(overrides, "ResetButton")}
         ></Button>
         <Flex
-          gap={tokens.space.small.value}
+          gap="15px"
           {...getOverrideProps(overrides, "RightAlignCTASubFlex")}
         >
           <Button
             children="Submit"
             type="submit"
             variation="primary"
-            isDisabled={Object.values(errors).some((e) => e?.hasError)}
+            isDisabled={
+              !(idProp || projectModelProp) ||
+              Object.values(errors).some((e) => e?.hasError)
+            }
             {...getOverrideProps(overrides, "SubmitButton")}
           ></Button>
         </Flex>

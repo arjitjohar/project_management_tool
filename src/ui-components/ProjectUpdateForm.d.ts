@@ -6,6 +6,7 @@
 
 import * as React from "react";
 import { AutocompleteProps, GridProps, TextFieldProps } from "@aws-amplify/ui-react";
+import { Project, Task } from "../models";
 export declare type EscapeHatchProps = {
     [elementHierarchy: string]: Record<string, unknown>;
 } | null;
@@ -25,13 +26,13 @@ export declare type ProjectUpdateFormInputValues = {
     userId?: string;
     description?: string;
     title?: string;
-    Tasks?: any[];
+    Tasks?: Task[];
 };
 export declare type ProjectUpdateFormValidationValues = {
     userId?: ValidationFunction<string>;
     description?: ValidationFunction<string>;
     title?: ValidationFunction<string>;
-    Tasks?: ValidationFunction<any>;
+    Tasks?: ValidationFunction<Task>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
 export declare type ProjectUpdateFormOverridesProps = {
@@ -45,7 +46,7 @@ export declare type ProjectUpdateFormProps = React.PropsWithChildren<{
     overrides?: ProjectUpdateFormOverridesProps | undefined | null;
 } & {
     id?: string;
-    project?: any;
+    project?: Project;
     onSubmit?: (fields: ProjectUpdateFormInputValues) => ProjectUpdateFormInputValues;
     onSuccess?: (fields: ProjectUpdateFormInputValues) => void;
     onError?: (fields: ProjectUpdateFormInputValues, errorMessage: string) => void;

@@ -19,7 +19,7 @@ import {
   TextField,
   useTheme,
 } from "@aws-amplify/ui-react";
-import { Project, Task } from "../models";
+import { Task, Project } from "../models";
 import {
   fetchByPath,
   getOverrideProps,
@@ -182,7 +182,7 @@ function ArrayField({
     </React.Fragment>
   );
 }
-export default function ProjectCreateForm(props) {
+export default function TaskCreateForm(props) {
   const {
     clearOnSuccess = true,
     onSuccess,
@@ -193,53 +193,53 @@ export default function ProjectCreateForm(props) {
     overrides,
     ...rest
   } = props;
-  const { tokens } = useTheme();
   const initialValues = {
-    userId: "",
-    description: "",
-    title: "",
-    Tasks: [],
+    projectID: undefined,
+    relatedTasks: "",
+    ES: "",
+    EF: "",
+    LS: "",
+    LF: "",
   };
-  const [userId, setUserId] = React.useState(initialValues.userId);
-  const [description, setDescription] = React.useState(
-    initialValues.description
+  const [projectID, setProjectID] = React.useState(initialValues.projectID);
+  const [relatedTasks, setRelatedTasks] = React.useState(
+    initialValues.relatedTasks
   );
-  const [title, setTitle] = React.useState(initialValues.title);
-  const [Tasks, setTasks] = React.useState(initialValues.Tasks);
+  const [ES, setES] = React.useState(initialValues.ES);
+  const [EF, setEF] = React.useState(initialValues.EF);
+  const [LS, setLS] = React.useState(initialValues.LS);
+  const [LF, setLF] = React.useState(initialValues.LF);
   const [errors, setErrors] = React.useState({});
   const resetStateValues = () => {
-    setUserId(initialValues.userId);
-    setDescription(initialValues.description);
-    setTitle(initialValues.title);
-    setTasks(initialValues.Tasks);
-    setCurrentTasksValue(undefined);
-    setCurrentTasksDisplayValue("");
+    setProjectID(initialValues.projectID);
+    setCurrentProjectIDValue(undefined);
+    setCurrentProjectIDDisplayValue("");
+    setRelatedTasks(initialValues.relatedTasks);
+    setES(initialValues.ES);
+    setEF(initialValues.EF);
+    setLS(initialValues.LS);
+    setLF(initialValues.LF);
     setErrors({});
   };
-  const [currentTasksDisplayValue, setCurrentTasksDisplayValue] =
+  const [currentProjectIDDisplayValue, setCurrentProjectIDDisplayValue] =
     React.useState("");
-  const [currentTasksValue, setCurrentTasksValue] = React.useState(undefined);
-  const TasksRef = React.createRef();
-  const getIDValue = {
-    Tasks: (r) => JSON.stringify({ id: r?.id }),
-  };
-  const TasksIdSet = new Set(
-    Array.isArray(Tasks)
-      ? Tasks.map((r) => getIDValue.Tasks?.(r))
-      : getIDValue.Tasks?.(Tasks)
-  );
-  const taskRecords = useDataStoreBinding({
+  const [currentProjectIDValue, setCurrentProjectIDValue] =
+    React.useState(undefined);
+  const projectIDRef = React.createRef();
+  const projectRecords = useDataStoreBinding({
     type: "collection",
-    model: Task,
+    model: Project,
   }).items;
   const getDisplayValue = {
-    Tasks: (r) => `${r?.relatedTasks ? r?.relatedTasks + " - " : ""}${r?.id}`,
+    projectID: (r) => `${r?.userId ? r?.userId + " - " : ""}${r?.id}`,
   };
   const validations = {
-    userId: [],
-    description: [],
-    title: [],
-    Tasks: [],
+    projectID: [{ type: "Required" }],
+    relatedTasks: [],
+    ES: [],
+    EF: [],
+    LS: [],
+    LF: [],
   };
   const runValidationTasks = async (
     fieldName,
@@ -261,37 +261,31 @@ export default function ProjectCreateForm(props) {
   return (
     <Grid
       as="form"
-      rowGap={tokens.space.xs.value}
-      columnGap={tokens.space.small.value}
-      padding={tokens.space.xxs.value}
+      rowGap="15px"
+      columnGap="15px"
+      padding="20px"
       onSubmit={async (event) => {
         event.preventDefault();
         let modelFields = {
-          userId,
-          description,
-          title,
-          Tasks,
+          projectID,
+          relatedTasks,
+          ES,
+          EF,
+          LS,
+          LF,
         };
         const validationResponses = await Promise.all(
           Object.keys(validations).reduce((promises, fieldName) => {
             if (Array.isArray(modelFields[fieldName])) {
               promises.push(
                 ...modelFields[fieldName].map((item) =>
-                  runValidationTasks(
-                    fieldName,
-                    item,
-                    getDisplayValue[fieldName]
-                  )
+                  runValidationTasks(fieldName, item)
                 )
               );
               return promises;
             }
             promises.push(
-              runValidationTasks(
-                fieldName,
-                modelFields[fieldName],
-                getDisplayValue[fieldName]
-              )
+              runValidationTasks(fieldName, modelFields[fieldName])
             );
             return promises;
           }, [])
@@ -308,26 +302,7 @@ export default function ProjectCreateForm(props) {
               modelFields[key] = null;
             }
           });
-          const modelFieldsToSave = {
-            userId: modelFields.userId,
-            description: modelFields.description,
-            title: modelFields.title,
-          };
-          const project = await DataStore.save(new Project(modelFieldsToSave));
-          const promises = [];
-          promises.push(
-            ...Tasks.reduce((promises, original) => {
-              promises.push(
-                DataStore.save(
-                  Task.copyOf(original, (updated) => {
-                    updated.projectID = project.id;
-                  })
-                )
-              );
-              return promises;
-            }, [])
-          );
-          await Promise.all(promises);
+          await DataStore.save(new Task(modelFields));
           if (onSuccess) {
             onSuccess(modelFields);
           }
@@ -340,199 +315,256 @@ export default function ProjectCreateForm(props) {
           }
         }
       }}
-      {...getOverrideProps(overrides, "ProjectCreateForm")}
+      {...getOverrideProps(overrides, "TaskCreateForm")}
       {...rest}
     >
-      <TextField
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>User id</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
-        isRequired={false}
-        isReadOnly={false}
-        value={userId}
-        onChange={(e) => {
-          let { value } = e.target;
-          if (onChange) {
-            const modelFields = {
-              userId: value,
-              description,
-              title,
-              Tasks,
-            };
-            const result = onChange(modelFields);
-            value = result?.userId ?? value;
-          }
-          if (errors.userId?.hasError) {
-            runValidationTasks("userId", value);
-          }
-          setUserId(value);
-        }}
-        onBlur={() => runValidationTasks("userId", userId)}
-        errorMessage={errors.userId?.errorMessage}
-        hasError={errors.userId?.hasError}
-        {...getOverrideProps(overrides, "userId")}
-      ></TextField>
-      <TextField
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>Description</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
-        isRequired={false}
-        isReadOnly={false}
-        value={description}
-        onChange={(e) => {
-          let { value } = e.target;
-          if (onChange) {
-            const modelFields = {
-              userId,
-              description: value,
-              title,
-              Tasks,
-            };
-            const result = onChange(modelFields);
-            value = result?.description ?? value;
-          }
-          if (errors.description?.hasError) {
-            runValidationTasks("description", value);
-          }
-          setDescription(value);
-        }}
-        onBlur={() => runValidationTasks("description", description)}
-        errorMessage={errors.description?.errorMessage}
-        hasError={errors.description?.hasError}
-        {...getOverrideProps(overrides, "description")}
-      ></TextField>
-      <TextField
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>Title</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
-        isRequired={false}
-        isReadOnly={false}
-        value={title}
-        onChange={(e) => {
-          let { value } = e.target;
-          if (onChange) {
-            const modelFields = {
-              userId,
-              description,
-              title: value,
-              Tasks,
-            };
-            const result = onChange(modelFields);
-            value = result?.title ?? value;
-          }
-          if (errors.title?.hasError) {
-            runValidationTasks("title", value);
-          }
-          setTitle(value);
-        }}
-        onBlur={() => runValidationTasks("title", title)}
-        errorMessage={errors.title?.errorMessage}
-        hasError={errors.title?.hasError}
-        {...getOverrideProps(overrides, "title")}
-      ></TextField>
       <ArrayField
+        lengthLimit={1}
         onChange={async (items) => {
-          let values = items;
+          let value = items[0];
           if (onChange) {
             const modelFields = {
-              userId,
-              description,
-              title,
-              Tasks: values,
+              projectID: value,
+              relatedTasks,
+              ES,
+              EF,
+              LS,
+              LF,
             };
             const result = onChange(modelFields);
-            values = result?.Tasks ?? values;
+            value = result?.projectID ?? value;
           }
-          setTasks(values);
-          setCurrentTasksValue(undefined);
-          setCurrentTasksDisplayValue("");
+          setProjectID(value);
+          setCurrentProjectIDValue(undefined);
         }}
-        currentFieldValue={currentTasksValue}
-        label={
-          <span style={{ display: "inline-flex" }}>
-            <span>Tasks</span>
-            <span style={{ whiteSpace: "pre", fontStyle: "italic" }}>
-              {" "}
-              - optional
-            </span>
-          </span>
-        }
-        items={Tasks}
-        hasError={errors?.Tasks?.hasError}
+        currentFieldValue={currentProjectIDValue}
+        label={"Project id"}
+        items={projectID ? [projectID] : []}
+        hasError={errors?.projectID?.hasError}
         runValidationTasks={async () =>
-          await runValidationTasks("Tasks", currentTasksValue)
+          await runValidationTasks("projectID", currentProjectIDValue)
         }
-        errorMessage={errors?.Tasks?.errorMessage}
-        getBadgeText={getDisplayValue.Tasks}
-        setFieldValue={(model) => {
-          setCurrentTasksDisplayValue(
-            model ? getDisplayValue.Tasks(model) : ""
+        errorMessage={errors?.projectID?.errorMessage}
+        getBadgeText={(value) =>
+          value
+            ? getDisplayValue.projectID(
+                projectRecords.find((r) => r.id === value)
+              )
+            : ""
+        }
+        setFieldValue={(value) => {
+          setCurrentProjectIDDisplayValue(
+            value
+              ? getDisplayValue.projectID(
+                  projectRecords.find((r) => r.id === value)
+                )
+              : ""
           );
-          setCurrentTasksValue(model);
+          setCurrentProjectIDValue(value);
         }}
-        inputFieldRef={TasksRef}
+        inputFieldRef={projectIDRef}
         defaultFieldValue={""}
       >
         <Autocomplete
-          label="Tasks"
-          isRequired={false}
+          label="Project id"
+          isRequired={true}
           isReadOnly={false}
-          placeholder="Search Task"
-          value={currentTasksDisplayValue}
-          options={taskRecords
-            .filter((r) => !TasksIdSet.has(getIDValue.Tasks?.(r)))
+          placeholder="Search Project"
+          value={currentProjectIDDisplayValue}
+          options={projectRecords
+            .filter(
+              (r, i, arr) =>
+                arr.findIndex((member) => member?.id === r?.id) === i
+            )
             .map((r) => ({
-              id: getIDValue.Tasks?.(r),
-              label: getDisplayValue.Tasks?.(r),
+              id: r?.id,
+              label: getDisplayValue.projectID?.(r),
             }))}
           onSelect={({ id, label }) => {
-            setCurrentTasksValue(
-              taskRecords.find((r) =>
-                Object.entries(JSON.parse(id)).every(
-                  ([key, value]) => r[key] === value
-                )
-              )
-            );
-            setCurrentTasksDisplayValue(label);
-            runValidationTasks("Tasks", label);
+            setCurrentProjectIDValue(id);
+            setCurrentProjectIDDisplayValue(label);
+            runValidationTasks("projectID", label);
           }}
           onClear={() => {
-            setCurrentTasksDisplayValue("");
+            setCurrentProjectIDDisplayValue("");
           }}
           onChange={(e) => {
             let { value } = e.target;
-            if (errors.Tasks?.hasError) {
-              runValidationTasks("Tasks", value);
+            if (errors.projectID?.hasError) {
+              runValidationTasks("projectID", value);
             }
-            setCurrentTasksDisplayValue(value);
-            setCurrentTasksValue(undefined);
+            setCurrentProjectIDDisplayValue(value);
+            setCurrentProjectIDValue(undefined);
           }}
-          onBlur={() => runValidationTasks("Tasks", currentTasksDisplayValue)}
-          errorMessage={errors.Tasks?.errorMessage}
-          hasError={errors.Tasks?.hasError}
-          ref={TasksRef}
+          onBlur={() => runValidationTasks("projectID", currentProjectIDValue)}
+          errorMessage={errors.projectID?.errorMessage}
+          hasError={errors.projectID?.hasError}
+          ref={projectIDRef}
           labelHidden={true}
-          {...getOverrideProps(overrides, "Tasks")}
+          {...getOverrideProps(overrides, "projectID")}
         ></Autocomplete>
       </ArrayField>
+      <TextField
+        label="Related tasks"
+        isRequired={false}
+        isReadOnly={false}
+        value={relatedTasks}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              projectID,
+              relatedTasks: value,
+              ES,
+              EF,
+              LS,
+              LF,
+            };
+            const result = onChange(modelFields);
+            value = result?.relatedTasks ?? value;
+          }
+          if (errors.relatedTasks?.hasError) {
+            runValidationTasks("relatedTasks", value);
+          }
+          setRelatedTasks(value);
+        }}
+        onBlur={() => runValidationTasks("relatedTasks", relatedTasks)}
+        errorMessage={errors.relatedTasks?.errorMessage}
+        hasError={errors.relatedTasks?.hasError}
+        {...getOverrideProps(overrides, "relatedTasks")}
+      ></TextField>
+      <TextField
+        label="Es"
+        isRequired={false}
+        isReadOnly={false}
+        type="number"
+        step="any"
+        value={ES}
+        onChange={(e) => {
+          let value = isNaN(parseInt(e.target.value))
+            ? e.target.value
+            : parseInt(e.target.value);
+          if (onChange) {
+            const modelFields = {
+              projectID,
+              relatedTasks,
+              ES: value,
+              EF,
+              LS,
+              LF,
+            };
+            const result = onChange(modelFields);
+            value = result?.ES ?? value;
+          }
+          if (errors.ES?.hasError) {
+            runValidationTasks("ES", value);
+          }
+          setES(value);
+        }}
+        onBlur={() => runValidationTasks("ES", ES)}
+        errorMessage={errors.ES?.errorMessage}
+        hasError={errors.ES?.hasError}
+        {...getOverrideProps(overrides, "ES")}
+      ></TextField>
+      <TextField
+        label="Ef"
+        isRequired={false}
+        isReadOnly={false}
+        type="number"
+        step="any"
+        value={EF}
+        onChange={(e) => {
+          let value = isNaN(parseInt(e.target.value))
+            ? e.target.value
+            : parseInt(e.target.value);
+          if (onChange) {
+            const modelFields = {
+              projectID,
+              relatedTasks,
+              ES,
+              EF: value,
+              LS,
+              LF,
+            };
+            const result = onChange(modelFields);
+            value = result?.EF ?? value;
+          }
+          if (errors.EF?.hasError) {
+            runValidationTasks("EF", value);
+          }
+          setEF(value);
+        }}
+        onBlur={() => runValidationTasks("EF", EF)}
+        errorMessage={errors.EF?.errorMessage}
+        hasError={errors.EF?.hasError}
+        {...getOverrideProps(overrides, "EF")}
+      ></TextField>
+      <TextField
+        label="Ls"
+        isRequired={false}
+        isReadOnly={false}
+        type="number"
+        step="any"
+        value={LS}
+        onChange={(e) => {
+          let value = isNaN(parseInt(e.target.value))
+            ? e.target.value
+            : parseInt(e.target.value);
+          if (onChange) {
+            const modelFields = {
+              projectID,
+              relatedTasks,
+              ES,
+              EF,
+              LS: value,
+              LF,
+            };
+            const result = onChange(modelFields);
+            value = result?.LS ?? value;
+          }
+          if (errors.LS?.hasError) {
+            runValidationTasks("LS", value);
+          }
+          setLS(value);
+        }}
+        onBlur={() => runValidationTasks("LS", LS)}
+        errorMessage={errors.LS?.errorMessage}
+        hasError={errors.LS?.hasError}
+        {...getOverrideProps(overrides, "LS")}
+      ></TextField>
+      <TextField
+        label="Lf"
+        isRequired={false}
+        isReadOnly={false}
+        type="number"
+        step="any"
+        value={LF}
+        onChange={(e) => {
+          let value = isNaN(parseInt(e.target.value))
+            ? e.target.value
+            : parseInt(e.target.value);
+          if (onChange) {
+            const modelFields = {
+              projectID,
+              relatedTasks,
+              ES,
+              EF,
+              LS,
+              LF: value,
+            };
+            const result = onChange(modelFields);
+            value = result?.LF ?? value;
+          }
+          if (errors.LF?.hasError) {
+            runValidationTasks("LF", value);
+          }
+          setLF(value);
+        }}
+        onBlur={() => runValidationTasks("LF", LF)}
+        errorMessage={errors.LF?.errorMessage}
+        hasError={errors.LF?.hasError}
+        {...getOverrideProps(overrides, "LF")}
+      ></TextField>
       <Flex
         justifyContent="space-between"
         {...getOverrideProps(overrides, "CTAFlex")}
@@ -547,7 +579,7 @@ export default function ProjectCreateForm(props) {
           {...getOverrideProps(overrides, "ClearButton")}
         ></Button>
         <Flex
-          gap={tokens.space.small.value}
+          gap="15px"
           {...getOverrideProps(overrides, "RightAlignCTASubFlex")}
         >
           <Button

@@ -1,4 +1,4 @@
-type Task @model @auth(rules: [{allow: private}]) {
+type Task @model @auth(rules: [{allow: owner}]) {
   id: ID!
   projectID: ID! @index(name: "byProject")
   relatedTasks: String
@@ -8,7 +8,7 @@ type Task @model @auth(rules: [{allow: private}]) {
   LF: Int
 }
 
-type Project @model @auth(rules: [{allow: private}, {allow: owner}]) {
+type Project @model @auth(rules: [{allow: owner}]) {
   id: ID!
   userId: String
   description: String

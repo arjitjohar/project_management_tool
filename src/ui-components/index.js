@@ -5,4 +5,6 @@
  **************************************************************************/
 
 export { default as ProjectCreateForm } from "./ProjectCreateForm";
+export { default as ProjectUpdateForm } from "./ProjectUpdateForm";
+export { default as TaskCreateForm } from "./TaskCreateForm";
 export { default as studioTheme } from "./studioTheme";

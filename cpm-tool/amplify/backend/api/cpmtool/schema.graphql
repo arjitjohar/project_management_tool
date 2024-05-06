@@ -1,17 +1,20 @@
-type Task @model @auth(rules: [{allow: private}]) {
+type Task @model @auth(rules: [{allow: owner}]) {
   id: ID!
-  projectID: ID! @index(name: "byProject")
+  title: String
   relatedTasks: String
   ES: Int
   EF: Int
   LS: Int
   LF: Int
+  projectID: ID! @index(name: "byProject")
+  duration: Int
 }
 
-type Project @model @auth(rules: [{allow: private}, {allow: owner}]) {
+type Project @model @auth(rules: [{allow: owner}]) {
   id: ID!
   userId: String
   description: String
   title: String
   Tasks: [Task] @hasMany(indexName: "byProject", fields: ["id"])
-} 
+}
+ 

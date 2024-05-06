@@ -1,6 +1,72 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const createTask = /* GraphQL */ `
+  mutation CreateTask(
+    $input: CreateTaskInput!
+    $condition: ModelTaskConditionInput
+  ) {
+    createTask(input: $input, condition: $condition) {
+      id
+      title
+      relatedTasks
+      ES
+      EF
+      LS
+      LF
+      projectID
+      duration
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const updateTask = /* GraphQL */ `
+  mutation UpdateTask(
+    $input: UpdateTaskInput!
+    $condition: ModelTaskConditionInput
+  ) {
+    updateTask(input: $input, condition: $condition) {
+      id
+      title
+      relatedTasks
+      ES
+      EF
+      LS
+      LF
+      projectID
+      duration
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const deleteTask = /* GraphQL */ `
+  mutation DeleteTask(
+    $input: DeleteTaskInput!
+    $condition: ModelTaskConditionInput
+  ) {
+    deleteTask(input: $input, condition: $condition) {
+      id
+      title
+      relatedTasks
+      ES
+      EF
+      LS
+      LF
+      projectID
+      duration
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
 export const createProject = /* GraphQL */ `
   mutation CreateProject(
     $input: CreateProjectInput!
@@ -8,8 +74,13 @@ export const createProject = /* GraphQL */ `
   ) {
     createProject(input: $input, condition: $condition) {
       id
-      title
+      userId
       description
+      title
+      Tasks {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -24,8 +95,13 @@ export const updateProject = /* GraphQL */ `
   ) {
     updateProject(input: $input, condition: $condition) {
       id
-      title
+      userId
       description
+      title
+      Tasks {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -40,8 +116,13 @@ export const deleteProject = /* GraphQL */ `
   ) {
     deleteProject(input: $input, condition: $condition) {
       id
-      title
+      userId
       description
+      title
+      Tasks {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner

@@ -21,28 +21,31 @@ export declare type ValidationResponse = {
     errorMessage?: string;
 };
 export declare type ValidationFunction<T> = (value: T, validationResponse: ValidationResponse) => ValidationResponse | Promise<ValidationResponse>;
-export declare type ProjectCreateFormInputValues = {
+export declare type TaskCreateFormInputValues = {
+    relatedTasks?: string;
     title?: string;
-    description?: string;
+    duration?: number;
 };
-export declare type ProjectCreateFormValidationValues = {
+export declare type TaskCreateFormValidationValues = {
+    relatedTasks?: ValidationFunction<string>;
     title?: ValidationFunction<string>;
-    description?: ValidationFunction<string>;
+    duration?: ValidationFunction<number>;
 };
 export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
-export declare type ProjectCreateFormOverridesProps = {
-    ProjectCreateFormGrid?: PrimitiveOverrideProps<GridProps>;
+export declare type TaskCreateFormOverridesProps = {
+    TaskCreateFormGrid?: PrimitiveOverrideProps<GridProps>;
+    relatedTasks?: PrimitiveOverrideProps<TextFieldProps>;
     title?: PrimitiveOverrideProps<TextFieldProps>;
-    description?: PrimitiveOverrideProps<TextFieldProps>;
+    duration?: PrimitiveOverrideProps<TextFieldProps>;
 } & EscapeHatchProps;
-export declare type ProjectCreateFormProps = React.PropsWithChildren<{
-    overrides?: ProjectCreateFormOverridesProps | undefined | null;
+export declare type TaskCreateFormProps = React.PropsWithChildren<{
+    overrides?: TaskCreateFormOverridesProps | undefined | null;
 } & {
     clearOnSuccess?: boolean;
-    onSubmit?: (fields: ProjectCreateFormInputValues) => ProjectCreateFormInputValues;
-    onSuccess?: (fields: ProjectCreateFormInputValues) => void;
-    onError?: (fields: ProjectCreateFormInputValues, errorMessage: string) => void;
-    onChange?: (fields: ProjectCreateFormInputValues) => ProjectCreateFormInputValues;
-    onValidate?: ProjectCreateFormValidationValues;
+    onSubmit?: (fields: TaskCreateFormInputValues) => TaskCreateFormInputValues;
+    onSuccess?: (fields: TaskCreateFormInputValues) => void;
+    onError?: (fields: TaskCreateFormInputValues, errorMessage: string) => void;
+    onChange?: (fields: TaskCreateFormInputValues) => TaskCreateFormInputValues;
+    onValidate?: TaskCreateFormValidationValues;
 } & React.CSSProperties>;
-export default function ProjectCreateForm(props: ProjectCreateFormProps): React.ReactElement;
+export default function TaskCreateForm(props: TaskCreateFormProps): React.ReactElement;

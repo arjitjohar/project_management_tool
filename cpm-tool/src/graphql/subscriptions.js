@@ -1,6 +1,72 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const onCreateTask = /* GraphQL */ `
+  subscription OnCreateTask(
+    $filter: ModelSubscriptionTaskFilterInput
+    $owner: String
+  ) {
+    onCreateTask(filter: $filter, owner: $owner) {
+      id
+      title
+      relatedTasks
+      ES
+      EF
+      LS
+      LF
+      projectID
+      duration
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onUpdateTask = /* GraphQL */ `
+  subscription OnUpdateTask(
+    $filter: ModelSubscriptionTaskFilterInput
+    $owner: String
+  ) {
+    onUpdateTask(filter: $filter, owner: $owner) {
+      id
+      title
+      relatedTasks
+      ES
+      EF
+      LS
+      LF
+      projectID
+      duration
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onDeleteTask = /* GraphQL */ `
+  subscription OnDeleteTask(
+    $filter: ModelSubscriptionTaskFilterInput
+    $owner: String
+  ) {
+    onDeleteTask(filter: $filter, owner: $owner) {
+      id
+      title
+      relatedTasks
+      ES
+      EF
+      LS
+      LF
+      projectID
+      duration
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
 export const onCreateProject = /* GraphQL */ `
   subscription OnCreateProject(
     $filter: ModelSubscriptionProjectFilterInput
@@ -8,8 +74,13 @@ export const onCreateProject = /* GraphQL */ `
   ) {
     onCreateProject(filter: $filter, owner: $owner) {
       id
-      title
+      userId
       description
+      title
+      Tasks {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -24,8 +95,13 @@ export const onUpdateProject = /* GraphQL */ `
   ) {
     onUpdateProject(filter: $filter, owner: $owner) {
       id
-      title
+      userId
       description
+      title
+      Tasks {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -40,8 +116,13 @@ export const onDeleteProject = /* GraphQL */ `
   ) {
     onDeleteProject(filter: $filter, owner: $owner) {
       id
-      title
+      userId
       description
+      title
+      Tasks {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
